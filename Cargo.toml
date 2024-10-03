@@ -1,0 +1,7 @@
+[workspace]
+members = [
+    'nag',
+    'nagd',
+    'shared',
+]
+resolver = "2"
