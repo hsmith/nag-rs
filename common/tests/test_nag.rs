@@ -4,7 +4,7 @@
 //
 
 use chrono::{Duration, Utc};
-use shared::{nag_to_line, read_nags_from_file, time_remaining, write_nags_to_file, Nag};
+use common::{nag_to_line, read_nags_from_file, time_remaining, write_nags_to_file, Nag};
 use std::io::{Cursor, Read, Seek, SeekFrom};
 
 #[test]

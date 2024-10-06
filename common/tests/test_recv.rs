@@ -3,9 +3,9 @@
 // SPDX-License-Identifier: MIT
 //
 
-use shared::command::Command;
-use shared::response::Response;
-use shared::{recv_command, recv_message, recv_response};
+use common::command::Command;
+use common::response::Response;
+use common::{recv_command, recv_message, recv_response};
 use tokio::io::{self, AsyncWriteExt};
 
 #[tokio::test]

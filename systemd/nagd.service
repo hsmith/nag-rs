@@ -1,0 +1,12 @@
+[Unit]
+Description=nagd Timer Service
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/nagd
+Restart=on-failure
+User=nagd
+
+[Install]
+WantedBy=multi-user.target
+

@@ -1,7 +1,7 @@
 [workspace]
 members = [
+    'common',
     'nag',
     'nagd',
-    'shared',
 ]
 resolver = "2"

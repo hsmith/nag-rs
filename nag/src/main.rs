@@ -4,12 +4,12 @@
 //
 
 use chrono::Utc;
-use log::info;
-use shared::{
+use common::{
     read_nags_from_file, recv_response, send_command, write_nags_to_file, Command, Nag, Response,
-    COMSOCK_PATH,
+    COMSOCK_PATH, CONFIG,
 };
-use std::process::{Command as Proc, ExitStatus};
+use log::info;
+use std::process::Command as Proc;
 use tempfile::NamedTempFile;
 use tokio::net::UnixStream;
 
@@ -187,7 +187,12 @@ async fn edit_nags() {
     write_nags_to_file(&nags, &mut temp_file).expect("Failed to write nags to file");
 
     // run nvim on the temp file and wait for it to close
-    let status: ExitStatus = Proc::new("nvim")
+    let mut proc = Proc::new(&CONFIG.edit_tool[0]);
+    for arg in &CONFIG.edit_tool[1..] {
+        proc.arg(arg);
+    }
+
+    let status = proc
         .arg(temp_file.path())
         .status()
         .expect("Failed to start nvim");

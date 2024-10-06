@@ -4,8 +4,10 @@
 //
 
 use chrono::Utc;
+use common::{
+    recv_command, send_response, Command, ErrorCode, Nag, Response, COMSOCK_PATH, CONFIG,
+};
 use log::info;
-use shared::{recv_command, send_response, Command, ErrorCode, Nag, Response, COMSOCK_PATH};
 use std::fs;
 use std::path::Path;
 use std::sync::Arc;
@@ -77,22 +79,24 @@ async fn process_nags(nags: NagList) {
 
 async fn trigger_nag(nag: Nag) {
     let nagbar = tokio::spawn(async move {
-        let _ = Proc::new("i3-nagbar")
-            .arg("-m")
-            .arg(nag.name)
-            .status()
-            .await
-            .expect("Failed to execute i3-nagbar");
+        let mut proc = Proc::new(&CONFIG.nag_tool[0]);
+        for arg in &CONFIG.nag_tool[1..] {
+            proc.arg(arg);
+        }
+        proc.status().await.expect("failed to execute i3-navbar");
     });
 
     let paplay = nag.sound_file.map(|sfx_file| {
-        Proc::new("paplay")
-            .arg(sfx_file)
-            .spawn()
-            .expect("Failed to execute paplay")
+        let mut proc = Proc::new(&CONFIG.audio_tool[0]);
+        for arg in &CONFIG.audio_tool[1..] {
+            proc.arg(arg);
+        }
+        proc.arg(sfx_file);
+
+        proc.spawn().expect("failed to execute audio_tool")
     });
 
-    nagbar.await.expect("Nagbar finished successfully");
+    nagbar.await.expect("nag_tool finished successfully");
     if let Some(mut child) = paplay {
         if let Err(e) = child.kill().await {
             eprintln!("Failed to kill paplay child with error {}", e);

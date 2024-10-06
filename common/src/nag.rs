@@ -10,7 +10,7 @@ use std::io::{self, BufRead, Read, Seek, SeekFrom, Write};
 
 // Nag data structure /////////////////////////////////////////////////////////
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct Nag {
     pub end_time: DateTime<Utc>,
     pub name: String,
@@ -19,6 +19,7 @@ pub struct Nag {
 
 // ----------------------------------------------------------------------------
 
+#[must_use]
 pub fn time_remaining(end_time: &DateTime<Utc>) -> String {
     let now = Utc::now();
     let duration = *end_time - now;
@@ -57,6 +58,7 @@ pub fn time_remaining(end_time: &DateTime<Utc>) -> String {
 
 // ----------------------------------------------------------------------------
 
+#[must_use]
 pub fn nag_to_line(nag: &Nag) -> String {
     if let Some(sound_file) = &nag.sound_file {
         format!(
@@ -101,10 +103,8 @@ pub fn read_nags_from_file<R: Read + Seek>(
         if parts.len() < 2 {
             if !line.is_empty() {
                 eprintln!(
-                    "Skipping malformed line {}, parts len: {}, parts: {:?}",
-                    line,
-                    parts.len(),
-                    parts
+                    "Skipping malformed line {line}, parts len: {}, parts: {parts:?}",
+                    parts.len()
                 );
             }
             continue;

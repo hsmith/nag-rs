@@ -3,9 +3,9 @@
 // SPDX-License-Identifier: MIT
 //
 
-use shared::command::Command;
-use shared::response::Response;
-use shared::send::{send_command, send_message, send_response};
+use common::command::Command;
+use common::response::Response;
+use common::send::{send_command, send_message, send_response};
 
 use tokio::io::{self, AsyncReadExt};
 
