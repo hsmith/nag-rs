@@ -6,10 +6,12 @@ edition = "2021"
 [dependencies]
 chrono = "0.4.38"
 clap = "4.5.19"
+duration-str = "0.11.2"
 env_logger = "0.11.5"
 log = "0.4.22"
 serde = { version = "1.0.210", features = ["derive"] }
 serde_json = "1.0.128"
 shared = { path = "../shared" }
+tempfile = "3.13.0"
 tokio = { version = "1.40.0", features = ["full"] }
 tokio-stream = "0.1.16"

@@ -3,10 +3,15 @@
 // SPDX-License-Identifier: MIT
 //
 
+use crate::nag::Nag;
+
 use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum Command {
-    AddNag { duration: String, name: String, sound_file: Option<String> },
+    AddNag { nag: Nag },
     ListNags,
+    SetNags { nags : Vec<Nag> },
 }
+
+

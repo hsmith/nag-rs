@@ -9,5 +9,6 @@ use serde::{Serialize, Deserialize};
 pub enum ErrorCode {
     OK,
     InvalidFormat,
-    UnknownCommand
+    UnknownCommand,
+    NotImplemented,
 }
