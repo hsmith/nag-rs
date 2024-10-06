@@ -1,0 +1,36 @@
+stages:
+  - build
+  - test
+  - lint
+
+variables:
+  RUST_TOOLCHAIN: "stable"
+
+before_script:
+  # Install Rust
+  - apt-get update -y && apt-get install -y curl
+  - curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain $RUST_TOOLCHAIN
+  - export PATH="$HOME/.cargo/bin:$PATH"
+
+build:
+  stage: build
+  script:
+    - cargo build --workspace --all-targets
+
+test:
+  stage: test
+  script:
+    - cargo test --workspace --all-features --verbose
+
+clippy:
+  stage: lint
+  script:
+    - rustup component add clippy
+    - cargo clippy --workspace -- -D warnings # Fail on warnings
+
+fmt:
+  stage: lint
+  script:
+    - rustup component add rustfmt
+    - cargo fmt --all -- --check
+
