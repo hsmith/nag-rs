@@ -58,7 +58,11 @@ pub fn time_remaining(end_time: &DateTime<Utc>) -> String {
 // ----------------------------------------------------------------------------
 
 pub fn nag_to_line(nag: &Nag) -> String {
-    format!("\"{}\",\"{}\",\"{}\"", nag.end_time.to_rfc3339(), nag.name, nag.sound_file.clone().unwrap_or("".to_string()))
+    if let Some(sound_file) = &nag.sound_file {
+        format!("\"{}\",\"{}\",\"{}\"", nag.end_time.to_rfc3339(), nag.name, sound_file)
+    } else {
+        format!("\"{}\",\"{}\"", nag.end_time.to_rfc3339(), nag.name)
+    }
 }
 
 // ----------------------------------------------------------------------------
