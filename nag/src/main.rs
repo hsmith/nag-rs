@@ -8,10 +8,6 @@ use common::{
     read_nags_from_file, recv_response, send_command, write_nags_to_file, Command, Nag, Response,
     COMSOCK_PATH, CONFIG,
 };
-use std::env;
-use std::fs;
-use std::io::{Write};
-use std::path::Path;
 use log::info;
 use std::process::Command as Proc;
 use tempfile::NamedTempFile;
@@ -45,10 +41,7 @@ async fn main() {
                         .help("Path to a sound file to play"),
                 ),
         )
-        .subcommand(
-            clap::Command::new("edit")
-                .about("edits all tags"),
-        )
+        .subcommand(clap::Command::new("edit").about("edits all tags"))
         .get_matches();
 
     if matches.subcommand_matches("list").is_some() {
