@@ -5,13 +5,11 @@
 
 use crate::nag::Nag;
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
 pub enum Command {
     AddNag { nag: Nag },
     ListNags,
-    SetNags { nags : Vec<Nag> },
+    SetNags { nags: Vec<Nag> },
 }
-
-

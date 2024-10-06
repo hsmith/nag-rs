@@ -3,10 +3,10 @@
 // SPDX-License-Identifier: MIT
 //
 
-use chrono::{DateTime, Utc, Duration};
+use chrono::{DateTime, Duration, Utc};
 use duration_str::parse;
-use std::io::{self, BufRead, Seek, SeekFrom, Read, Write};
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
+use std::io::{self, BufRead, Read, Seek, SeekFrom, Write};
 
 // Nag data structure /////////////////////////////////////////////////////////
 
@@ -35,13 +35,13 @@ pub fn time_remaining(end_time: &DateTime<Utc>) -> String {
         remaining.push_str(&format!("{}d", days));
     }
 
-    let hours_left = seconds - ( days * 24 * 60 * 60 );
-    let hours = hours_left / ( 60 * 60 );
+    let hours_left = seconds - (days * 24 * 60 * 60);
+    let hours = hours_left / (60 * 60);
     if hours > 0 {
         remaining.push_str(&format!("{}h", hours));
     }
 
-    let minutes_left = hours_left - ( hours * 60 * 60 );
+    let minutes_left = hours_left - (hours * 60 * 60);
     let minutes = minutes_left / 60;
     if minutes > 0 {
         remaining.push_str(&format!("{}m", minutes));
@@ -51,7 +51,7 @@ pub fn time_remaining(end_time: &DateTime<Utc>) -> String {
     if seconds_left > 0 {
         remaining.push_str(&format!("{}s", seconds_left));
     }
-        
+
     remaining
 }
 
@@ -59,7 +59,12 @@ pub fn time_remaining(end_time: &DateTime<Utc>) -> String {
 
 pub fn nag_to_line(nag: &Nag) -> String {
     if let Some(sound_file) = &nag.sound_file {
-        format!("\"{}\",\"{}\",\"{}\"", nag.end_time.to_rfc3339(), nag.name, sound_file)
+        format!(
+            "\"{}\",\"{}\",\"{}\"",
+            nag.end_time.to_rfc3339(),
+            nag.name,
+            sound_file
+        )
     } else {
         format!("\"{}\",\"{}\"", nag.end_time.to_rfc3339(), nag.name)
     }
@@ -68,9 +73,11 @@ pub fn nag_to_line(nag: &Nag) -> String {
 // ----------------------------------------------------------------------------
 
 pub fn write_nags_to_file<W: Write + Seek>(nags: &Vec<Nag>, writer: &mut W) -> io::Result<()> {
-    writer.seek(SeekFrom::End(0)).expect("Failed to seek to end of file");
+    writer
+        .seek(SeekFrom::End(0))
+        .expect("Failed to seek to end of file");
     for nag in nags {
-        let line = nag_to_line(&nag);
+        let line = nag_to_line(nag);
         writeln!(writer, "{}", line)?;
     }
 
@@ -79,8 +86,11 @@ pub fn write_nags_to_file<W: Write + Seek>(nags: &Vec<Nag>, writer: &mut W) -> i
 
 // ----------------------------------------------------------------------------
 
-pub fn read_nags_from_file<R: Read+Seek>(read: &mut R) -> Result<Vec<Nag>, Box<dyn std::error::Error>> {
-    read.seek(SeekFrom::Start(0)).expect("failed to seek to beginning of file");
+pub fn read_nags_from_file<R: Read + Seek>(
+    read: &mut R,
+) -> Result<Vec<Nag>, Box<dyn std::error::Error>> {
+    read.seek(SeekFrom::Start(0))
+        .expect("failed to seek to beginning of file");
     let reader = io::BufReader::new(read);
 
     let mut nags = Vec::new();
@@ -90,7 +100,12 @@ pub fn read_nags_from_file<R: Read+Seek>(read: &mut R) -> Result<Vec<Nag>, Box<d
 
         if parts.len() < 2 {
             if !line.is_empty() {
-                eprintln!("Skipping malformed line {}, parts len: {}, parts: {:?}", line, parts.len(), parts);
+                eprintln!(
+                    "Skipping malformed line {}, parts len: {}, parts: {:?}",
+                    line,
+                    parts.len(),
+                    parts
+                );
             }
             continue;
         }
@@ -101,20 +116,19 @@ pub fn read_nags_from_file<R: Read+Seek>(read: &mut R) -> Result<Vec<Nag>, Box<d
             Err(_) => {
                 println!("NOT a date time, lets try parsing...");
                 Utc::now() + parse(s).expect("Failed to parse string")
-            },
+            }
         };
         let name = parts[1].trim_matches('"').to_string();
         let sound_file = if parts.len() > 2 && parts[2] != "None" {
             Some(parts[2].trim_matches('"').to_string())
-        }
-        else {
+        } else {
             None
         };
 
         nags.push(Nag {
             end_time,
-            name, 
-            sound_file
+            name,
+            sound_file,
         });
     }
 

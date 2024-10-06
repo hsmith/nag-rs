@@ -3,13 +3,13 @@
 // SPDX-License-Identifier: MIT
 //
 
-use chrono::{Utc, Duration};
-use shared::{Nag, time_remaining, nag_to_line, write_nags_to_file, read_nags_from_file};
+use chrono::{Duration, Utc};
+use shared::{nag_to_line, read_nags_from_file, time_remaining, write_nags_to_file, Nag};
 use std::io::{Cursor, Read, Seek, SeekFrom};
 
 #[test]
 fn test_time_remaining() {
-    let future_time = Utc::now() + Duration::seconds(86400 + 60*60 + 60 + 2); // 1 day, 1 hour, 1 minute, 1 second (we add an extra second due to inaccuracies with timing)
+    let future_time = Utc::now() + Duration::seconds(86400 + 60 * 60 + 60 + 2); // 1 day, 1 hour, 1 minute, 1 second (we add an extra second due to inaccuracies with timing)
     let remaining = time_remaining(&future_time);
     assert_eq!(remaining, "1d1h1m1s");
 
@@ -27,7 +27,10 @@ fn test_nag_to_line() {
     };
 
     let line = nag_to_line(&nag);
-    let expected = format!("\"{}\",\"Test Nag\",\"test.wav\"", nag.end_time.to_rfc3339());
+    let expected = format!(
+        "\"{}\",\"Test Nag\",\"test.wav\"",
+        nag.end_time.to_rfc3339()
+    );
     assert_eq!(line, expected);
 
     let nag_no_sound = Nag {
@@ -62,11 +65,7 @@ fn test_write_nags_to_file() {
     let mut written_data = String::new();
     cursor.read_to_string(&mut written_data).unwrap();
 
-    let expected = format!(
-        "{}\n{}\n",
-        nag_to_line(&nag1),
-        nag_to_line(&nag2)
-    );
+    let expected = format!("{}\n{}\n", nag_to_line(&nag1), nag_to_line(&nag2));
     assert_eq!(written_data, expected);
 }
 
@@ -83,11 +82,7 @@ fn test_read_nags_from_file() {
         sound_file: None,
     };
 
-    let data = format!(
-        "{}\n{}\n",
-        nag_to_line(&nag1),
-        nag_to_line(&nag2)
-    );
+    let data = format!("{}\n{}\n", nag_to_line(&nag1), nag_to_line(&nag2));
 
     let mut cursor = Cursor::new(data.into_bytes());
     let read_nags = read_nags_from_file(&mut cursor).expect("Failed to read nags from file");
@@ -96,4 +91,3 @@ fn test_read_nags_from_file() {
     assert_eq!(read_nags[0], nag1);
     assert_eq!(read_nags[1], nag2);
 }
-

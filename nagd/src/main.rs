@@ -4,17 +4,17 @@
 //
 
 use chrono::Utc;
-use log::{info};
-use shared::{Command, recv_command, ErrorCode, Response, send_response, COMSOCK_PATH, Nag};
+use log::info;
+use shared::{recv_command, send_response, Command, ErrorCode, Nag, Response, COMSOCK_PATH};
 use std::fs;
 use std::path::Path;
-use std::sync::{Arc};
+use std::sync::Arc;
 use tokio::io::BufReader;
 use tokio::net::UnixListener;
+use tokio::process::Command as Proc;
 use tokio::spawn;
-use tokio::process::{Command as Proc};
 use tokio::sync::Mutex;
-use tokio::time::{ Duration, interval };
+use tokio::time::{interval, Duration};
 
 // NagList ////////////////////////////////////////////////////////////////////
 
@@ -36,18 +36,16 @@ fn ensure_dir(file_path: &str) {
 async fn main() {
     env_logger::init();
 
-
     info!("Starting nagd...");
     ensure_dir(COMSOCK_PATH);
     let nags = NagList::new(Mutex::new(Vec::new()));
-    
+
     let connections_clone = Arc::clone(&nags);
     spawn(handle_connections(connections_clone));
 
     let process_clone = Arc::clone(&nags);
     process_nags(process_clone).await;
-
-} 
+}
 
 // ----------------------------------------------------------------------------
 
@@ -67,10 +65,9 @@ async fn process_nags(nags: NagList) {
                 tokio::spawn(async move {
                     trigger_nag(nag_clone).await;
                 });
-                return false;
-            }
-            else {
-                return true;
+                false
+            } else {
+                true
             }
         });
     }
@@ -88,21 +85,18 @@ async fn trigger_nag(nag: Nag) {
             .expect("Failed to execute i3-nagbar");
     });
 
-    let paplay = if let Some(sfx_file) = nag.sound_file {
-        Some(Proc::new("paplay")
-                .arg(sfx_file)
-                .spawn()
-                .expect("Failed to execute paplay"),
-        )
-    } else {
-        None
-    };
+    let paplay = nag.sound_file.map(|sfx_file| {
+        Proc::new("paplay")
+            .arg(sfx_file)
+            .spawn()
+            .expect("Failed to execute paplay")
+    });
 
     nagbar.await.expect("Nagbar finished successfully");
     if let Some(mut child) = paplay {
-       if let Err(e) = child.kill().await {
-           eprintln!("Failed to kill paplay child with error {}", e);
-       }
+        if let Err(e) = child.kill().await {
+            eprintln!("Failed to kill paplay child with error {}", e);
+        }
     } else {
         info!("No paplay");
     }
@@ -119,7 +113,7 @@ async fn handle_connections(nag_list: NagList) {
 
     loop {
         let nags = Arc::clone(&nag_list);
-        
+
         info!("Socket bound, waiting connection...");
         let (stream, _) = listener.accept().await.expect("Listener failed to accept");
 
@@ -131,8 +125,8 @@ async fn handle_connections(nag_list: NagList) {
             Ok(command) => match command {
                 Command::AddNag { nag } => add_nag(nag, &nags).await,
                 Command::ListNags => list_nags(nags).await,
-                Command::SetNags { nags: new_nags } =>set_nags(new_nags, &nags).await,
-            }
+                Command::SetNags { nags: new_nags } => set_nags(new_nags, &nags).await,
+            },
             Err(err) => Response::Error {
                 code: ErrorCode::UnknownCommand,
                 msg: Some(err.to_string()),
@@ -140,7 +134,9 @@ async fn handle_connections(nag_list: NagList) {
         };
 
         info!("Sending response...");
-        send_response(&mut write_stream, response).await.expect("Failed to send response");
+        send_response(&mut write_stream, response)
+            .await
+            .expect("Failed to send response");
     }
 }
 
@@ -159,9 +155,7 @@ async fn list_nags(nags: NagList) -> Response {
     let nags_list = serde_json::to_string(&*nags).unwrap_or_else(|_| "[]".to_string());
 
     info!("Listing nags... {}", nags_list);
-    Response::NagList {
-        nags: nags.clone(),
-    }
+    Response::NagList { nags: nags.clone() }
 }
 
 // ----------------------------------------------------------------------------

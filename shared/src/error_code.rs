@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
 pub enum ErrorCode {

@@ -1,0 +1,43 @@
+name: nag CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        rust: [stable, nightly]
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{matrix.rust}}
+          override: true
+
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install libssl-dev
+
+      - name: build all targets
+        run: cargo build --workspace --all-targets
+
+      - name: Run tests
+        run: cargo test --workspace --all-features --verbose
+
+      - name: Run clippy (linting)
+        uses: actions-rs/clippy-check@v1
+
+      - name: Run fmt (format check)
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: -- --check
